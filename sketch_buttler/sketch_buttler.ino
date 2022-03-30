@@ -3,21 +3,27 @@
 
 int Aan = 1;
 
+//motor pins
 int MRB = 16;
 int MRF = 17;
 int MLF = 5;
 int MLB = 18;
 
+//pin power
 int RB = 0;
 int RF = 0;
 int LB = 0;
 int LF = 0;
 
+//the older and newer lidar data
 int lidarDistance;
 int lidarDistance2;
-unsigned long timeNow;
+
+//number of searches for an opening with no result
+int stuckCount;
+
+//the direction the last seen hole was in. a value of 1 being left, 2 being right, and 0 neutral
 int holeDirection = 0;
-int duration = 0;
 
 Adafruit_VL53L0X lox = Adafruit_VL53L0X();
 void setup() {
@@ -36,73 +42,44 @@ void setup() {
 }
 
 void loop() {
-  // makes the robot drive at a predetermined speed
   if(Aan == 0){
     stopDriving();
     
   }else{
     lidarDistance = getLidarResult(lox);
     Serial.println(lidarDistance);
-    
+
+    //checks if the robot is stuck
+//    if(stuckCount > 4){
+//      
+//      driveBackwards();
+//    }
+
+    //makes the robot drive forward while no obstacles close by
     if(lidarDistance > 400){
       driveForward();
-      
+
+    //obtstacle found  
     }else{
       stopDriving();
-      duration = 1000;
+
+      //depending on the last opening seen, either left or right of the robot gets searched for the next opening
       switch(holeDirection){
-        case 1:
-        duration = 950;
-        break;
-
+        case 0: 
         case 2:
-        duration = 1050;
-        break;
-      }
-      timeNow = millis();
-      while(millis() < timeNow + duration){
-        turnLeft();
-        lidarDistance2 = getLidarResult(lox);
-        if(lidarDistance2 - lidarDistance > 40){
-          holeDirection = 1;
-          stopDriving();
-
-          timeNow = millis();
-          duration = 30;
-          while(millis() < timeNow + duration){
-            turnLeft();
-          }
+        if(searchLeft(millis(), 600)){
           break;
         }
-      }
-      stopDriving();
-      duration = 2000;
-      switch(holeDirection){
+        searchRight(millis(), 1200);
+        break;
+
         case 1:
-        duration = 2050;
-        break;
-
-        case 2:
-        duration = 1950;
-        break;
-      }
-      timeNow = millis();
-      while(millis() < timeNow + duration){
-        turnRight();
-        lidarDistance2 = getLidarResult(lox);
-        if(lidarDistance2 - lidarDistance > 40){
-          holeDirection = 2;
-          stopDriving();
-
-          timeNow = millis();
-          duration = 30;
-          while(millis() < timeNow + duration){
-            turnRight();
-          }
+        if(searchRight(millis(), 600)){
           break;
         }
+        searchLeft(millis(), 1200);
+        break;
       }
-      stopDriving();
     }
   }
 }
@@ -115,6 +92,54 @@ int getLidarResult(Adafruit_VL53L0X lox){
   return measure.RangeMilliMeter;
 }
 
+boolean searchLeft(unsigned long timeNow, int duration){
+  while(millis() < timeNow + duration){
+    turnLeft();
+    lidarDistance2 = getLidarResult(lox);
+    
+    //when there's a sufficient difference is the old and new lidar value, we know its an opening
+    if(lidarDistance2 - lidarDistance > 40){
+      stuckCount = 0;
+      holeDirection = 1;
+      stopDriving();
+      
+      //after finding an opening, turn a little more to compensate for the wider frame
+      unsigned long timeNow2 = millis();
+      int duration2 = 10;
+      while(millis() < timeNow2 + duration2){
+        turnLeft();
+      }
+      
+      return true;
+    }
+  }
+  return false;
+}
+
+boolean searchRight(unsigned long timeNow, int duration){
+  while(millis() < timeNow + duration){
+    turnRight();
+    lidarDistance2 = getLidarResult(lox);
+    
+    //when there's a sufficient difference is the old and new lidar value, we know its an opening
+    if(lidarDistance2 - lidarDistance > 40){
+      stuckCount = 0;
+      holeDirection = 2;
+      stopDriving();
+      
+      //after finding an opening, turn a little more to compensate for the wider frame
+      unsigned long timeNow2 = millis();
+      int duration2 = 10;
+      while(millis() < timeNow2 + duration2){
+        turnRight();
+      }
+      
+      return true;
+    }
+  }
+  return false;
+}
+
 void setMotors(){
   analogWrite(MLF, LF);
   analogWrite(MLB, LB);
@@ -124,9 +149,17 @@ void setMotors(){
 
 void driveForward(){
   RB = 0;
-  RF = 170;
+  RF = 150;
   LB = 0;
-  LF = 150;
+  LF = 154;
+  setMotors();
+}
+
+void driveBackwards(){
+  RB = 150;
+  RF = 0;
+  LB = 154;
+  LF = 0;
   setMotors();
 }
 
@@ -140,16 +173,16 @@ void stopDriving(){
 
 void turnLeft() {
   RB = 0;
-  LB = 150;
-  RF = 150;
+  LB = 170;
+  RF = 170;
   LF = 0;
   setMotors();
 }
 
 void turnRight() {
   LB = 0;
-  RB = 150;
-  LF = 150;
+  RB = 170;
+  LF = 170;
   RF = 0;
   setMotors();
 }
