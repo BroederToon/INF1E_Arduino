@@ -50,10 +50,13 @@ void loop() {
     Serial.println(lidarDistance);
 
     //checks if the robot is stuck
-//    if(stuckCount > 4){
-//      
-//      driveBackwards();
-//    }
+    if(stuckCount > 4){
+      int period = 500;
+      int time = millis();
+      while(millis() < time + period){
+        driveBackwards();
+      }
+    }
 
     //makes the robot drive forward while no obstacles close by
     if(lidarDistance > 400){
@@ -105,7 +108,7 @@ boolean searchLeft(unsigned long timeNow, int duration){
       
       //after finding an opening, turn a little more to compensate for the wider frame
       unsigned long timeNow2 = millis();
-      int duration2 = 10;
+      int duration2 = 40;
       while(millis() < timeNow2 + duration2){
         turnLeft();
       }
@@ -129,7 +132,7 @@ boolean searchRight(unsigned long timeNow, int duration){
       
       //after finding an opening, turn a little more to compensate for the wider frame
       unsigned long timeNow2 = millis();
-      int duration2 = 10;
+      int duration2 = 40;
       while(millis() < timeNow2 + duration2){
         turnRight();
       }
