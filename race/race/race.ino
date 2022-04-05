@@ -2,6 +2,8 @@
 
 int Aan = 1;
 
+boolean finished = false;
+
 int MRB = 16;
 int MRF = 17;
 int MLF = 5;
@@ -14,7 +16,9 @@ int RF = 0;
 int LB = 0;
 int LF = 0;
 
-int i = 0;
+int stuckCounter = 0;
+
+unsigned long timeDiff;
 
 void setup() {
   // put your setup code here, to run once:
@@ -32,28 +36,39 @@ void loop() {
   int valueRight = analogRead(lineSensorRight);
   int valueLeft = analogRead(lineSensorLeft);
 
-  if(valueRight > 100 && valueLeft > 100){
-    backOff(750);
+  if(finished){
+    stopDriving();
   }
 
-  while(valueRight > 100){
-    valueRight = analogRead(lineSensorRight);
-    valueLeft = analogRead(lineSensorLeft);
+  if(valueRight < 40 && valueLeft < 40){
+    finished = true;
+  }
+
+  if(valueRight > 140 && valueLeft > 140){
+    stuckCounter++;
+  }
+
+  if(valueRight > 140){
+    turnRight();
+  }
+
+  if(valueLeft > 140){
     turnLeft();
   }
 
-  while(valueLeft > 100){
-    valueRight = analogRead(lineSensorRight);
-    valueLeft = analogRead(lineSensorLeft);
-    turnRight();
+  if(stuckCounter > 1000){
+    backOff(2000);
   }
-  driveForward();
+
+  if(valueLeft < 140 && valueRight < 140){
+    driveForward();
+  }
 
 }
 
 //functions
 void driveForward(){
-  RB = 180;
+  RB = 195;
   RF = 0;
   LB = 180;
   LF = 0;
@@ -64,30 +79,31 @@ void backOff(int duration){
   Serial.println("backwards, GOOOOOOOOOOO");
   unsigned long timeNow = millis();
   while(millis() < timeNow + duration){
+    Serial.println("check");
     driveBackwards();
   }
 }
 
 void driveBackwards(){
   RB = 0;
-  RF = 180;
+  RF = 100;
   LB = 0;
-  LF = 180;
+  LF = 100;
   activate();
 }
 
 void turnLeft() {
   RB = 0;
-  LB = 180;
-  RF = 180;
+  LB = 150;
+  RF = 150;
   LF = 0;
   activate();
 }
 
 void turnRight() {
   LB = 0;
-  RB = 180;
-  LF = 180;
+  RB = 150;
+  LF = 150;
   RF = 0;
   activate();
 }
