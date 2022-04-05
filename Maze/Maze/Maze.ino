@@ -24,9 +24,12 @@ int RF = 0;
 int LB = 0;
 int LF = 0;
 
-int black = 2000;
-int grey = 55;
-int white = 40;
+int minBlack = 800;
+int minGrey = 55;
+int maxGrey = 200;
+
+String colorR = "";
+String colorL = "";
 
 String gameAction = "";
 unsigned long timermillis = 0;
@@ -36,7 +39,7 @@ Adafruit_SSD1306 display(128, 64, &Wire, 4);
 Adafruit_VL53L0X lox = Adafruit_VL53L0X();
 
 void setup() {
-
+  
 
   Serial.begin(9600);
   WiFi.mode(WIFI_STA);
@@ -58,22 +61,40 @@ void setup() {
   display.setTextColor(SSD1306_WHITE);
   display.display();
 
+  int LineRight = analogRead(lineSensorRight);
+  int LineLeft = analogRead(lineSensorLeft);
+
+
 }
 
 void loop() {
 
-  int LineRight = analogRead(lineSensorRight);
-  int LineLeft = analogRead(lineSensorLeft);
+  if(LineRight <= minGrey){
+    colorR = "white";
+  } else if ( Lineright > minGrey && Lineright <= maxGrey ) {
+    colorR = "grey";
+  } else if ( Lineright >= minBlack){
+    colorR = "black";
+  }
+
+  if(LineLeft <= minGrey){
+    colorL = "white";
+  } else if (LineLeft > minGrey && LineLeft <= maxGrey) {
+    colorL = "grey";
+  } else if (LineLeft >= minBlack){
+    colorL = "black";
+  }
 
   //clear the display
   display.clearDisplay();
 
   //write the values from the IR sensor on the display
   display.setCursor(0, 0);            // Start at top-left corner
-  display.print("LeftSens: ");
-  display.println(LineLeft);
-  display.print("RightSens: ");
-  display.println(LineRight);
+//  display.print("LeftSens: ");
+//  display.println(LineLeft);
+//  display.print("RightSens: ");
+//  display.println(LineRight);
+  display.display(gameAction);
   display.display();
 
   //udate current time
@@ -111,27 +132,27 @@ void loop() {
 
 
     //calls functions to turn/drive straight when following line
-    if (LineRight < grey && black > LineLeft && LineLeft > grey) {
+    if (colorR = "white" && colorL = "grey") {
       gameAction = "turnRight";
     }
 
-    if (black > LineRight && LineRight > grey && LineLeft < grey) {
+    if (colorR = "grey" && colorL = "white") {
       gameAction = "turnLeft";
     }
 
-    if (LineRight  < grey && LineLeft < grey) {
+    if (colorR = "white" && colorL = "white") {
       gameAction = "driveForward";
     }
 
-    if (LineRight > black) {
+    if (colorR = "black") {
       gameAction = "90Right";
     }
 
-    if (LineRight < grey && LineLeft > black ) {
+    if (colorR != "black" && colorL = "black" ) {
       gameAction = "90Left";
     }
 
-    if (black > LineRight && LineRight > grey && black > LineLeft && LineLeft > grey) {
+    if (colorR = "grey" && colorL = "grey") {
       gameAction = "uTurn";
     }
 
@@ -234,8 +255,8 @@ void T90Left() {
     LF = 0;
     RB = 0;
     LB = 0;
-      } else   if (LineLeft > black) {
-    if (LineRight > black) {
+      } else   if (colorL = "black") {
+    if (colorR = "black") {
       if (currentmillis - timermillis < 450) {
   RF = 0;
   LF = 0;
