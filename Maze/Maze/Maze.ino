@@ -25,8 +25,12 @@ int LB = 0;
 int LF = 0;
 
 int black = 2000;
-int grey = 58;
+int grey = 55;
 int white = 40;
+
+String gameAction = "";
+unsigned long timermillis = 0;
+unsigned long currentmillis = millis();
 
 Adafruit_SSD1306 display(128, 64, &Wire, 4);
 Adafruit_VL53L0X lox = Adafruit_VL53L0X();
@@ -72,9 +76,8 @@ void loop() {
   display.println(LineRight);
   display.display();
 
-  //Serial.println(LineRight);
-  //Serial.println(LineLeft);
-
+  //udate current time
+  currentmillis = millis();
   // makes the robot drive at a predetermined speed
   if (Aan == 1) {
     analogWrite(MLF, LF);
@@ -82,34 +85,54 @@ void loop() {
     analogWrite(MRF, RF);
     analogWrite(MRB, RB);
 
-
+    if(gameAction != ""){
+      if (gameAction = "turnRight"){
+        turnRight();
+      }
+      else if (gameAction = "turnLeft"){
+        turnLeft();
+      }
+      else if (gameAction = "driveForward"){
+        driveForward();
+      }
+      else if (gameAction = "90Right") {
+        T90Right();
+      }
+      else if (gameAction = "90Left"){
+        T90Left();
+      }
+      else if (gameAction = "uTurn"){
+        uTurn();
+      }
+      else if (gameAction = "stop") {
+        stopWheels();
+      }
+    }
 
 
     //calls functions to turn/drive straight when following line
     if (LineRight < grey && black > LineLeft && LineLeft > grey) {
-      turnRight();
+      gameAction = "turnRight";
     }
 
     if (black > LineRight && LineRight > grey && LineLeft < grey) {
-      turnLeft();
+      gameAction = "turnLeft";
     }
 
     if (LineRight  < grey && LineLeft < grey) {
-      driveForward();
+      gameAction = "driveForward";
     }
 
     if (LineRight > black) {
-      stopWheels();
-      // T90Right();
+      gameAction = "90Right";
     }
 
     if (LineRight < grey && LineLeft > black ) {
-      stopWheels();
-      //LeftTurn();
+      gameAction = "90Left";
     }
 
     if (black > LineRight && LineRight > grey && black > LineLeft && LineLeft > grey) {
-      stopWheels();
+      gameAction = "uTurn";
     }
 
   }
@@ -131,24 +154,24 @@ void stopWheels() {
   LB = 0;
 }
 void driveForward() {
-  RF = 87;
-  LF = 85;
+  RF = 107;
+  LF = 105;
   RB = 0;
   LB = 0;
 }
 
 void turnLeft() {
   RF = 0;
-  LF = 125;
-  RB = 85;
+  LF = 105;
+  RB = 0;
   LB = 0;
 }
 
 void turnRight() {
-  RF = 125;
+  RF = 107;
   LF = 0;
   RB = 0;
-  LB = 85;
+  LB = 0;
 }
 
 void driveBack () {
@@ -158,46 +181,106 @@ void driveBack () {
   LB = 85;
 }
 
-void T90Left() {
-  RF = 0;
-  LF = 85;
-  RB = 125;
-  LB = 0;
-  delay(300);
-  RF = 0;
-  LF = 0;
-  RB = 0;
-  LB = 0;
-  delay(50);
-}
-
 void T90Right() {
-  RF = 85;
-  LF = 0;
-  RB = 0;
-  LB = 125;
-  delay(100);
-  RF = 0;
-  LF = 0;
-  RB = 0;
-  LB = 0;
+  if (timermillis == 0) {
+    timermillis = millis();
+    currentmillis = millis();
+  }
+  if (currentmillis - timermillis < 300) {
+    RF = 85;
+    LF = 0;
+    RB = 0;
+    LB = 125;
+  }
+  else if (currentmillis - timermillis < 350) {
+    RF = 0;
+    LF = 0;
+    RB = 0;
+    LB = 0;
+  } else {
+    timermillis = 0;
+    gameAction = "";
+  }
 }
 
-void LeftTurn() {
-  T90Left();
-  if (LineLeft > black) {
+void uTurn() {
+  if (timermillis == 0) {
+    timermillis = millis();
+    currentmillis = millis();
+  }
+  if (currentmillis - timermillis < 500) {
+    RF = 85;
+    LF = 0;
+    RB = 0;
+    LB = 125;
+  } else {
+    timermillis = 0;
+    gameAction = "";
+  }
+}
+
+void T90Left() {
+      if (timermillis == 0) {
+        currentmillis = millis();
+        timermillis = millis();
+      }  if (currentmillis - timermillis < 300) {
+    RF = 0;
+    LF = 85;
+    RB = 125;
+    LB = 0;
+  }
+  else if (currentmillis - timermillis < 350) {
+    RF = 0;
+    LF = 0;
+    RB = 0;
+    LB = 0;
+      } else   if (LineLeft > black) {
     if (LineRight > black) {
-      driveBack();
-      delay(100);
-      T90Right();
+      if (currentmillis - timermillis < 450) {
+  RF = 0;
+  LF = 0;
+  RB = 87;
+  LB = 85;
+      }
+      else if (currentmillis - timermillis < 600) {
+        if (currentmillis - timermillis < 900) {
+    RF = 85;
+    LF = 0;
+    RB = 0;
+    LB = 125;
+  }
+  else if (currentmillis - timermillis < 950) {
+    RF = 0;
+    LF = 0;
+    RB = 0;
+    LB = 0;
+  }
+      } else {
+        timermillis = 0;
+        gameAction = "";
+      }
     }
-    else {
-      driveForward();
-      delay(100);
+    else 
+      if (currentmillis - timermillis < 450) {
+  RF = 87;
+  LF = 85;
+  RB = 0;
+  LB = 0;
+      }else {
+        timermillis = 0;
+        gameAction = "";
     }
   } else {
-    driveBack();
-    delay(100);
+    if (currentmillis - timermillis < 450) {
+  
+  RF = 0;
+  LF = 0;
+  RB = 87;
+  LB = 85;
+      }else {
+        timermillis = 0;
+        gameAction = "";
+    }
   }
 
 }
