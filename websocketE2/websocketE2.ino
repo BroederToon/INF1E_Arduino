@@ -6,17 +6,10 @@
 
 const char* gameStatus = "ready"; // temportaty hardcode!!
 
-// Daadwerkelijk ding
 const char* ssid = "battlebot_nl";
 const char* password = "battlebot_nl";
 const char* ip = "battlebot1.serverict.nl";
 const int port = 3003;
-
-// Youri hotspot
-//const char* ssid = "Wifi is saai";
-//const char* password = "2much4u2day"; 
-//const char* ip = "192.168.179.155";
-//const int port = 33003;
 
 StaticJsonDocument<200> doc_tx;
 StaticJsonDocument<200> doc_rx;
