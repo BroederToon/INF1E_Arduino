@@ -24,8 +24,8 @@ int RF = 0;
 int LB = 0;
 int LF = 0;
 
-int minBlack = 800;
-int minGrey = 55;
+int minBlack = 201;
+int minGrey = 60;
 int maxGrey = 200;
 
 String colorR = "";
@@ -61,19 +61,21 @@ void setup() {
   display.setTextColor(SSD1306_WHITE);
   display.display();
 
-  int LineRight = analogRead(lineSensorRight);
-  int LineLeft = analogRead(lineSensorLeft);
+
 
 
 }
 
 void loop() {
 
+  int LineRight = analogRead(lineSensorRight);
+  int LineLeft = analogRead(lineSensorLeft);
+  
   if(LineRight <= minGrey){
     colorR = "white";
-  } else if ( Lineright > minGrey && Lineright <= maxGrey ) {
+  } else if ( LineRight > minGrey && LineRight <= maxGrey ) {
     colorR = "grey";
-  } else if ( Lineright >= minBlack){
+  } else if ( LineRight >= minBlack){
     colorR = "black";
   }
 
@@ -90,11 +92,11 @@ void loop() {
 
   //write the values from the IR sensor on the display
   display.setCursor(0, 0);            // Start at top-left corner
-//  display.print("LeftSens: ");
-//  display.println(LineLeft);
-//  display.print("RightSens: ");
-//  display.println(LineRight);
-  display.display(gameAction);
+  display.print("LeftSens: ");
+  display.println(LineLeft);
+  display.print("RightSens: ");
+  display.println(LineRight);
+//  display.println(gameAction);
   display.display();
 
   //udate current time
@@ -106,53 +108,58 @@ void loop() {
     analogWrite(MRF, RF);
     analogWrite(MRB, RB);
 
-    if(gameAction != ""){
-      if (gameAction = "turnRight"){
+   if (gameAction != "") {
+      if (gameAction == "turnRight"){
         turnRight();
       }
-      else if (gameAction = "turnLeft"){
+      else if (gameAction == "turnLeft"){
         turnLeft();
       }
-      else if (gameAction = "driveForward"){
+      else if (gameAction == "driveForward"){
         driveForward();
       }
-      else if (gameAction = "90Right") {
+      else if (gameAction == "90Right") {
         T90Right();
+        return;
       }
-      else if (gameAction = "90Left"){
+      else if (gameAction == "90Left"){
         T90Left();
+        return;
       }
-      else if (gameAction = "uTurn"){
+      else if (gameAction == "uTurn"){
         uTurn();
+        return;
       }
-      else if (gameAction = "stop") {
+      else if (gameAction == "stop") {
         stopWheels();
       }
-    }
+
+   }
+    
 
 
     //calls functions to turn/drive straight when following line
-    if (colorR = "white" && colorL = "grey") {
+    if (colorR == "white" && colorL == "grey") {
       gameAction = "turnRight";
     }
 
-    if (colorR = "grey" && colorL = "white") {
+    if (colorR == "grey" && colorL == "white") {
       gameAction = "turnLeft";
     }
 
-    if (colorR = "white" && colorL = "white") {
+    if (colorR == "white" && colorL == "white") {
       gameAction = "driveForward";
     }
 
-    if (colorR = "black") {
+    if (colorR == "black") {
       gameAction = "90Right";
     }
 
-    if (colorR != "black" && colorL = "black" ) {
+    if (colorR != "black" && colorL == "black" ) {
       gameAction = "90Left";
     }
 
-    if (colorR = "grey" && colorL = "grey") {
+    if (colorR == "grey" && colorL == "grey") {
       gameAction = "uTurn";
     }
 
@@ -206,8 +213,13 @@ void T90Right() {
   if (timermillis == 0) {
     timermillis = millis();
     currentmillis = millis();
+  } if (currentmillis - timermillis < 200) {
+    RF = 85;
+    LF = 87;
+    RB = 0;
+    LB = 0;
   }
-  if (currentmillis - timermillis < 300) {
+  else if (currentmillis - timermillis < 300) {
     RF = 85;
     LF = 0;
     RB = 0;
@@ -229,8 +241,8 @@ void uTurn() {
     timermillis = millis();
     currentmillis = millis();
   }
-  if (currentmillis - timermillis < 500) {
-    RF = 85;
+  if (currentmillis - timermillis < 400) {
+    RF = 125;
     LF = 0;
     RB = 0;
     LB = 125;
@@ -255,8 +267,8 @@ void T90Left() {
     LF = 0;
     RB = 0;
     LB = 0;
-      } else   if (colorL = "black") {
-    if (colorR = "black") {
+      } else   if (colorL == "black") {
+    if (colorR == "black") {
       if (currentmillis - timermillis < 450) {
   RF = 0;
   LF = 0;
