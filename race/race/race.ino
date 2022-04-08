@@ -33,8 +33,14 @@ void setup() {
 }
 
 void loop() {
+  startRace();
+}
+
+//functions
+boolean startRace(){
   int valueRight = analogRead(lineSensorRight);
   int valueLeft = analogRead(lineSensorLeft);
+  Serial.println(stuckCounter);
 
   if(finished){
     stopDriving();
@@ -45,66 +51,52 @@ void loop() {
   }
 
   if(valueRight > 140 && valueLeft > 140){
-    stuckCounter++;
-  }
+    driveBackwards();
+  }else{
 
-  if(valueRight > 140){
-    turnRight();
+    if(valueRight > 140){
+      turnLeft();
+    }
+  
+    if(valueLeft > 140){
+      turnRight();
+    }
+  
+    if(valueLeft < 140 && valueRight < 140){
+      driveForward();
+    }
   }
-
-  if(valueLeft > 140){
-    turnLeft();
-  }
-
-  if(stuckCounter > 1000){
-    backOff(2000);
-  }
-
-  if(valueLeft < 140 && valueRight < 140){
-    driveForward();
-  }
-
 }
 
-//functions
 void driveForward(){
-  RB = 195;
+  RB = 230;
   RF = 0;
-  LB = 180;
+  LB = 215;
   LF = 0;
   activate();
-}
-
-void backOff(int duration){
-  Serial.println("backwards, GOOOOOOOOOOO");
-  unsigned long timeNow = millis();
-  while(millis() < timeNow + duration){
-    Serial.println("check");
-    driveBackwards();
-  }
 }
 
 void driveBackwards(){
   RB = 0;
-  RF = 100;
+  RF = 200;
   LB = 0;
-  LF = 100;
+  LF = 200;
   activate();
 }
 
 void turnLeft() {
-  RB = 0;
-  LB = 150;
-  RF = 150;
-  LF = 0;
+  LB = 0;
+  RB = 190;
+  LF = 190;
+  RF = 0;
   activate();
 }
 
 void turnRight() {
-  LB = 0;
-  RB = 150;
-  LF = 150;
-  RF = 0;
+  RB = 0;
+  LB = 190;
+  RF = 190;
+  LF = 0;
   activate();
 }
 
