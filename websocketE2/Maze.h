@@ -7,15 +7,6 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_VL53L0X.h>
 
-
-int MLF = 16;
-int MLB = 17;
-int MRB = 5;
-int MRF = 18;
-
-int lineRight = 0;
-int lineLeft = 0;
-
 int RB = 0;
 int RF = 0;
 int LB = 0;
@@ -32,30 +23,6 @@ String gameAction = "";
 unsigned long timermillis = 0;
 unsigned long currentmillis = millis();
 
-Adafruit_SSD1306 display(128, 64, &Wire, 4);
-Adafruit_VL53L0X lox = Adafruit_VL53L0X();
-
-void setup() {
-  Serial.begin(9600);
-
-  //setup display
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;)
-      ;  // Don't proceed, loop forever
-  }
-  if (!lox.begin()) {
-    Serial.println(F("Failed to boot VL53L0X"));
-    while (1)
-      ;
-  }
-
-  display.clearDisplay();
-  display.setTextSize(2);
-  display.setTextColor(SSD1306_WHITE);
-  display.display();
-}
-
 
 //functions
 void stopWheels() {
@@ -64,21 +31,21 @@ void stopWheels() {
   RB = 0;
   LB = 0;
 }
-void driveForward() {
+void driveForwardMaze() {
   RF = 107;
   LF = 105;
   RB = 0;
   LB = 0;
 }
 
-void turnLeft() { //correct the course to the left if the robot veers off the line
+void turnLeftMaze() { //correct the course to the left if the robot veers off the line
   RF = 0;
   LF = 105;
   RB = 0;
   LB = 0;
 }
 
-void turnRight() { //correct the course to the right if the robot veers off the line
+void turnRightMaze() { //correct the course to the right if the robot veers off the line
   RF = 107;
   LF = 0;
   RB = 0;
@@ -202,8 +169,14 @@ void T90Left() { //runs when a left turn is encountered to check if going straig
 
 
 boolean startMaze() {
+  Adafruit_SSD1306 display(128, 64, &Wire, 4);
   int lineRight = analogRead(34);
   int lineLeft = analogRead(39);
+
+  if(lineRight < 2 && lineLeft < 2){
+    stopWheels();
+    return true;
+  }
 
 //setting the value for the sensors as a range
   if (lineRight <= minGrey) {
@@ -222,25 +195,13 @@ boolean startMaze() {
     colorL = "black";
   }
 
-  //clear the display
-  display.clearDisplay();
-
-  //write the values from the IR sensor on the display
-  display.setCursor(0, 0);  // Start at top-left corner
-  display.print("LeftSens: ");
-  display.println(colorL);
-  display.print("RightSens: ");
-  display.println(colorR);
-  display.display();
-
   //udate current time
   currentmillis = millis();
   // makes the robot drive at a speed determined by the input recieved from the functions
-
-  analogWrite(MLF, LF);
-  analogWrite(MLB, LB);
-  analogWrite(MRF, RF);
-  analogWrite(MRB, RB);
+  analogWrite(16, LF);
+  analogWrite(17, LB);
+  analogWrite(18, RF);
+  analogWrite(5, RB);
 
   if (gameAction != "") {
     if (gameAction == "turnRight") {
@@ -251,13 +212,13 @@ boolean startMaze() {
       driveForward();
     } else if (gameAction == "90Right") {
       T90Right();
-      return;
+      return false;;
     } else if (gameAction == "90Left") {
       T90Left();
-      return;
+      return false;
     } else if (gameAction == "uTurn") {
       uTurn();
-      return;
+      return false;
     } else if (gameAction == "stop") {
       stopWheels();
     }
@@ -289,4 +250,5 @@ boolean startMaze() {
   if (colorR == "grey" && colorL == "grey") {
     gameAction = "uTurn";
   }
+  return false;
 }

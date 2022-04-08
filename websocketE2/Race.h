@@ -31,7 +31,10 @@ boolean startRace(){
   int valueRight = analogRead(39);
   int valueLeft = analogRead(34);
 
-  if(valueRight < 40 && valueLeft < 40){
+  Serial.println(valueLeft);
+
+  if(valueRight < 2 && valueLeft < 2){
+    Serial.println("we finished");
     stopDriving();
     return true;
   }
